@@ -56,6 +56,20 @@ VERDICT_PREFIX = {
 }
 
 
+def _checkpoint_at(cfg: DictConfig) -> str:
+    """Render checkpoint_at as the comma string src.train parses.
+
+    Accepts either the YAML list (the configured form) or a plain string, so an
+    override typed by hand as checkpoint_at="1,2,4" still works.
+    """
+    value = cfg.get("checkpoint_at")
+    if not value:
+        return ""
+    if isinstance(value, str):
+        return value
+    return ",".join(str(int(v)) for v in value)
+
+
 @hydra.main(version_base=None, config_path="../config", config_name="config")
 def main(cfg: DictConfig) -> None:
     mode = str(cfg.mode)
@@ -94,7 +108,7 @@ def main(cfg: DictConfig) -> None:
         "--lr", str(cfg.run.lr),
         "--expect-nodes", str(overrides.get("expect_nodes", cfg.run.expect_nodes)),
         "--verdict-prefix", VERDICT_PREFIX[mode],
-        "--checkpoint-at", str(cfg.get("checkpoint_at", "") or ""),
+        "--checkpoint-at", _checkpoint_at(cfg),
         "--wandb-entity", str(cfg.wandb.entity or ""),
         "--wandb-project", str(cfg.wandb.project or ""),
         "--wandb-mode", str(cfg.wandb.mode),
