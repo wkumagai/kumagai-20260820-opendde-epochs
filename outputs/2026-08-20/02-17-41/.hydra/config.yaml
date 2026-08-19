@@ -1,0 +1,23 @@
+mode: sanity
+results_dir: .research/results
+wandb:
+  entity: wkumagai
+  project: opendde-multinode-foldbench
+  mode: online
+epochs: null
+checkpoint_at:
+- 1
+- 2
+- 4
+- 8
+- 16
+- 32
+ema_decay: 0.9
+run:
+  run_id: proposed-opendde-openfold3
+  opendde_root: /data1/rkp00041/plinder_lddt_pli_improvement/model/opendde_data
+  checkpoint: /data1/rkp00041/plinder_lddt_pli_improvement/model/opendde_data/checkpoint/opendde.pt
+  cache_dir: /data1/rkp00041/rku00121/mz-repro-cache/sft
+  python_bin: /data1/rkp00041/plinder_lddt_pli_improvement/model/opendde/.venv/bin/python
+  lr: 0.0001
+  expect_nodes: 4

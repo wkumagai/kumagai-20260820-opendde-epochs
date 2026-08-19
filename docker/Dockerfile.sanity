@@ -1,3 +1,10 @@
+# Sanity variant of the root Dockerfile: identical image, different CMD.
+#
+# The execution platform runs a committed Dockerfile's CMD verbatim and ignores
+# the per-run parameters, so `mode` cannot be chosen at launch time. Two files
+# is the only way to get a cheap pre-flight run and a full run from the same
+# image definition. `mode=sanity` also sets expect_nodes=0, so a single-GPU
+# pre-flight does not fail the multi-node check that the full run needs.
 # Base Dockerfile for AIRAS ML Experiments
 # This provides a reproducible environment for all experiment stages
 

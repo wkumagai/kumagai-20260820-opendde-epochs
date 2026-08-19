@@ -20,6 +20,7 @@ scheduler.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime
 import json
 import logging
@@ -476,6 +477,47 @@ def train_step(
     )
 
 
+class ParamEMA:
+    """Exponential moving average of the trainable parameters.
+
+    AF3 runs inference from an EMA of the training weights (decay 0.999,
+    supplement section 5). The averaging is what makes the shipped weights
+    insensitive to wherever the last few noisy steps happened to land.
+
+    The decay has to be read against the step count, not copied from a paper.
+    An EMA with decay d has an effective window of about 1/(1-d) steps, and a
+    window longer than the run itself returns the initial weights -- the
+    fine-tuning silently disappears. This run takes ceil(n_examples/world_size)
+    steps per epoch, which is single digits, so 0.999 would average over
+    sixteen times more steps than exist. The warning below exists because that
+    failure is invisible in the loss curve: training looks fine and only the
+    saved checkpoint is wrong.
+    """
+
+    def __init__(self, params: list[torch.nn.Parameter], decay: float) -> None:
+        self.decay = decay
+        self.shadow = [p.detach().clone().float() for p in params]
+
+    @torch.no_grad()
+    def update(self, params: list[torch.nn.Parameter]) -> None:
+        for s, p in zip(self.shadow, params):
+            s.mul_(self.decay).add_(p.detach().float(), alpha=1.0 - self.decay)
+
+    @contextlib.contextmanager
+    def applied(self, params: list[torch.nn.Parameter]):
+        """Temporarily swap the averaged weights in, for saving."""
+        backup = [p.detach().clone() for p in params]
+        try:
+            with torch.no_grad():
+                for p, s in zip(params, self.shadow):
+                    p.copy_(s.to(p.dtype))
+            yield
+        finally:
+            with torch.no_grad():
+                for p, b in zip(params, backup):
+                    p.copy_(b)
+
+
 def _wandb_init(args, info: "RankInfo", n_examples: int,
                 n_trainable: int, n_total: int):
     """Start a W&B run on rank 0 only.
@@ -634,6 +676,23 @@ def run(args: argparse.Namespace) -> int:
 
     optimizer = torch.optim.AdamW(trainable, lr=args.lr, weight_decay=0.0)
 
+    ema = None
+    if args.ema_decay > 0.0:
+        ema = ParamEMA(trainable, args.ema_decay)
+        if info.is_main:
+            per_rank_steps = -(-min(len(examples), args.n_entries) // info.world_size)
+            total_steps = per_rank_steps * args.epochs
+            window = 1.0 / (1.0 - args.ema_decay)
+            logger.info("EMA decay %.4f -> window ~%.0f steps; run has %d steps",
+                        args.ema_decay, window, total_steps)
+            if window > total_steps:
+                logger.warning(
+                    "EMA window (%.0f) exceeds the whole run (%d steps): the "
+                    "averaged weights will sit near their initial values and "
+                    "the fine-tuning will not show up in them. Lower "
+                    "--ema-decay to about %.3f for this run.",
+                    window, total_steps, max(0.5, 1.0 - 1.0 / max(total_steps / 4.0, 2.0)))
+
     # Each rank takes a strided slice, so the ranks genuinely do different work
     # rather than recomputing the same batch in lockstep. Every rank must run
     # the SAME NUMBER of steps: each step issues DDP's gradient all-reduce, so a
@@ -684,6 +743,8 @@ def run(args: argparse.Namespace) -> int:
             loss.backward()
             grad_norm = torch.nn.utils.clip_grad_norm_(trainable, args.grad_clip)
             optimizer.step()
+            if ema is not None:
+                ema.update(trainable)
 
             step += 1
             losses.append(float(loss.detach().cpu()))
@@ -725,6 +786,10 @@ def run(args: argparse.Namespace) -> int:
             )
             if (epoch + 1) in checkpoint_at:
                 _save_epoch_checkpoint(model, args.save_checkpoint, epoch + 1)
+                if ema is not None:
+                    with ema.applied(trainable):
+                        _save_epoch_checkpoint(
+                            model, _ema_path(args.save_checkpoint), epoch + 1)
 
     elapsed = time.time() - t_start
 
@@ -741,6 +806,9 @@ def run(args: argparse.Namespace) -> int:
         _save_placement(placement, args.save_checkpoint)
         if args.save_checkpoint:
             _save(model, args.save_checkpoint)
+            if ema is not None:
+                with ema.applied(trainable):
+                    _save(model, _ema_path(args.save_checkpoint))
         if wandb_run is not None:
             _wandb_log(
                 wandb_run,
@@ -885,6 +953,12 @@ def _finite(x: float) -> bool:
     return x == x and abs(x) != float("inf")
 
 
+def _ema_path(path: str) -> str:
+    """Sibling path for the averaged weights, so both can be scored."""
+    out = Path(path)
+    return str(out.parent / f"{out.stem}-ema{out.suffix or '.pt'}")
+
+
 def _save(model, path: str) -> None:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -912,6 +986,9 @@ def main() -> None:
     # Comma-separated epoch numbers, e.g. "1,2,4,8,16,32". Empty keeps only the
     # final checkpoint, which is what every run before this one produced.
     parser.add_argument("--checkpoint-at", default="")
+    # 0 disables. See ParamEMA: the decay must be read against the step count,
+    # and this run has far fewer steps than AF3's 0.999 assumes.
+    parser.add_argument("--ema-decay", type=float, default=0.0)
     parser.add_argument("--wandb-entity", default="")
     parser.add_argument("--wandb-project", default="")
     parser.add_argument("--wandb-run-name", default="")

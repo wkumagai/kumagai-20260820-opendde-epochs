@@ -109,6 +109,7 @@ def main(cfg: DictConfig) -> None:
         "--expect-nodes", str(overrides.get("expect_nodes", cfg.run.expect_nodes)),
         "--verdict-prefix", VERDICT_PREFIX[mode],
         "--checkpoint-at", _checkpoint_at(cfg),
+        "--ema-decay", str(cfg.get("ema_decay", 0.0) or 0.0),
         "--wandb-entity", str(cfg.wandb.entity or ""),
         "--wandb-project", str(cfg.wandb.project or ""),
         "--wandb-mode", str(cfg.wandb.mode),

@@ -24,3 +24,8 @@ epochs: null
 # as an ambiguous list and refuses to start, so the string form cannot survive
 # being passed back on the command line by a launcher.
 checkpoint_at: [1, 2, 4, 8, 16, 32]
+
+# Exponential moving average of the trainable weights, as AF3 uses for
+# inference. 0 disables it. AF3's 0.999 assumes thousands of steps; this run
+# takes 60, so the decay is set from the step count instead of copied.
+ema_decay: 0.9
