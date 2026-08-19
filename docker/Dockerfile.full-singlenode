@@ -1,0 +1,55 @@
+# Single-node variant of the root Dockerfile: identical image, different CMD.
+#
+# `mode: full` asserts that four distinct hosts reported in, which is right for
+# the 16-GPU arm and wrong for every smaller one. A 1- or 4-GPU run trains
+# correctly and then fails that assertion, exits non-zero, and is recorded as a
+# failed run -- the result is lost for a reason that has nothing to do with the
+# experiment. `run.expect_nodes=0` disables the check for the arms that are
+# deliberately single-node.
+#
+# The arms differ only in world_size, which in this code IS the effective batch
+# size: 27 examples over N ranks gives ceil(27/N) optimizer steps per epoch, so
+# 16 GPUs buy 60 steps and 1 GPU buys 810. Same data, same epochs, same seed.
+# Base Dockerfile for AIRAS ML Experiments
+# This provides a reproducible environment for all experiment stages
+
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv package manager
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy dependency files
+COPY pyproject.toml ./
+# Copy uv.lock if it exists (wildcard makes it optional)
+COPY uv.lock* ./
+
+# Install Python dependencies using uv
+# This layer will be cached unless dependencies change
+RUN uv sync --frozen || uv sync
+
+# Copy the rest of the application
+COPY . .
+
+# Create results directory
+RUN mkdir -p .research/results
+
+# The execution platform runs this CMD verbatim when the image is built from a
+# committed Dockerfile, so it must invoke the experiment rather than a shell.
+# A CMD of ["bash"] exits 0 with no work done and is reported as a success.
+CMD ["uv", "run", "python", "-u", "-m", "src.main", "mode=full", "run.expect_nodes=0"]
