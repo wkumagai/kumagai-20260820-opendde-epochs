@@ -1,0 +1,17 @@
+{
+  "dockq_success_rate": 0.0833,
+  "dockq_medium_rate": 0.0,
+  "dockq_high_rate": 0.0,
+  "dockq_mean": 0.0665,
+  "dockq_median": 0.0275,
+  "lddt_mean": 0.6833,
+  "n_scored": 24,
+  "n_attempted": 26,
+  "primary_metric": "dockq_success_rate",
+  "supporting_metrics": [
+    "dockq_mean",
+    "dockq_medium_rate",
+    "dockq_high_rate",
+    "lddt_mean"
+  ]
+}

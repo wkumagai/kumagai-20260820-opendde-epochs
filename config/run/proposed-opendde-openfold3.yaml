@@ -1,0 +1,15 @@
+# One run config per (method, model, dataset) combination.
+run_id: proposed-opendde-openfold3
+
+# Paths on the RIKYU cluster. /data1/rkp00041 is bind-mounted into the job, so
+# these resolve identically inside and outside the container.
+opendde_root: /data1/rkp00041/plinder_lddt_pli_improvement/model/opendde_data
+checkpoint: /data1/rkp00041/plinder_lddt_pli_improvement/model/opendde_data/checkpoint/opendde.pt
+cache_dir: /data1/rkp00041/rku00121/mz-repro-cache/sft
+python_bin: /data1/rkp00041/plinder_lddt_pli_improvement/model/opendde/.venv/bin/python
+
+lr: 1.0e-4
+
+# Fail the run if fewer than this many distinct hosts report in. 0 disables the
+# check, which is what a single-node sanity run wants.
+expect_nodes: 4

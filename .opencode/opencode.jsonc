@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": "allow",
+  "experimental": {
+    "openTelemetry": true
+  },
+  "plugin": ["opencode-plugin-langfuse"],  // https://github.com/omercnet/opencode-plugin-langfuse
+  // RIKEN R-CCS's Rikyu API (OpenAI-compatible). The provider ID matches the
+  // prefix airas uses for the same endpoint, so one model name works in both
+  // layers: "rikyu/<model>". The key comes from a repository secret, injected
+  // by the workflows.
+  //
+  // Add one entry per model ID the endpoint reports at GET /v1/models — the
+  // key must be that exact ID, since it is what gets sent upstream.
+  "provider": {
+    "rikyu": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Rikyu (RIKEN R-CCS)",
+      "options": {
+        "baseURL": "https://api.rikyu.r-ccs.riken.jp/v1",
+        "apiKey": "{env:RIKYU_API_KEY}"
+      },
+      "models": {
+        "kimi-k3": {
+          "name": "Kimi K3"
+        }
+      }
+    }
+  }
+}

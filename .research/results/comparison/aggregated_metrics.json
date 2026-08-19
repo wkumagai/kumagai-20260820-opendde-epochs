@@ -1,0 +1,54 @@
+{
+  "primary_metric": "dockq_success_rate",
+  "supporting_metrics": [
+    "dockq_mean",
+    "dockq_medium_rate",
+    "dockq_high_rate",
+    "lddt_mean"
+  ],
+  "metrics_by_run_id": {
+    "baseline-pretrained": {
+      "dockq_success_rate": 0.1053,
+      "dockq_medium_rate": 0.0,
+      "dockq_high_rate": 0.0,
+      "dockq_mean": 0.0844,
+      "dockq_median": 0.039,
+      "lddt_mean": 0.6604,
+      "n_scored": 19,
+      "n_attempted": 19,
+      "primary_metric": "dockq_success_rate",
+      "supporting_metrics": [
+        "dockq_mean",
+        "dockq_medium_rate",
+        "dockq_high_rate",
+        "lddt_mean"
+      ]
+    },
+    "proposed-opendde-openfold3": {
+      "dockq_success_rate": 0.1053,
+      "dockq_medium_rate": 0.0,
+      "dockq_high_rate": 0.0,
+      "dockq_mean": 0.0693,
+      "dockq_median": 0.034,
+      "lddt_mean": 0.6432,
+      "n_scored": 19,
+      "n_attempted": 19,
+      "primary_metric": "dockq_success_rate",
+      "supporting_metrics": [
+        "dockq_mean",
+        "dockq_medium_rate",
+        "dockq_high_rate",
+        "lddt_mean"
+      ]
+    }
+  },
+  "best_proposed": [
+    "proposed-opendde-openfold3",
+    0.1053
+  ],
+  "best_baseline": [
+    "baseline-pretrained",
+    0.1053
+  ],
+  "gap": 0.0
+}

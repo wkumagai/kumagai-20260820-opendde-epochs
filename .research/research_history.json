@@ -1,0 +1,22 @@
+{
+  "research_topic": "OpenDDE 拡散モジュールのマルチノード分散ファインチューニングにおける実行正当性の検証",
+  "queries": [
+    "OpenDDE all-atom biomolecular foundation model co-folding",
+    "FoldBench benchmarking all-atom biomolecular structure prediction",
+    "multi-node distributed training NCCL correctness verification"
+  ],
+  "research_hypothesis": {
+    "open_problems": "OpenDDE は推論専用ビルドとして公開されており、技術報告書が「学習コードを公開する」と述べているにもかかわらず、公開リポジトリには学習ループ・損失関数・オプティマイザが存在しない。そのため、追加学習を行うには学習ループを外部から再構成する必要がある。さらに、マルチノード分散学習では「計算資源が確保されただけで実際には一部のランクしか計算していない」状態が発生しうるが、この故障はエラーを出さず、スケジューラ上も正常なジョブと区別がつかないため、通常の実行ログからは検出できない。",
+    "method": "OpenDDE の技術報告書 Table 1(b) に記載された EDM 対数正規ノイズスケジュール(p_mean=-1.2, p_std=1.5, sigma_data=16.0)に基づき、既存の単一ステップデノイザDiffusionModule.forward に AlphaFold3 系の重み付き MSE 損失を接続して教師ありファインチューニングを構成する。トランクは凍結し拡散モジュールのみを学習対象とする。分散実行の正当性は、全ランクがホスト名と GPU UUID を報告し、それを NCCL の集団通信で集約することで検証する。集約結果が出力された事実自体が、ノード間通信の成立を示す。",
+    "experimental_setup": "RIKYU クラスタ(NVIDIA GB200, aarch64, Slurm)の 4 ノード 16 GPU で、OpenFold3 PDB 学習サブセットから選定した 27 件のヘテロ二量体タンパク質複合体を用いて 30 エポックの分散学習を実行する。評価は FoldBench の抗体-抗原インターフェース予測タスクで、OpenStructure の DockQ により事前学習済みチェックポイントと比較する。推論は MSA・テンプレート検索を行わず、両モデルに同一条件を課す。",
+    "primary_metric": "dockq_success_rate",
+    "supporting_metrics": [
+      "dockq_mean",
+      "dockq_medium_rate",
+      "dockq_high_rate",
+      "lddt_mean"
+    ],
+    "expected_result": "分散実行は正しく動作し、16 ランクすべてが 4 ノードに分散して同数の学習ステップを実行する。一方 DockQ 成功率は改善しないか、わずかに低下する。学習に用いた OpenFold3 サブセットの収録期間(1976-2021/09)は OpenDDE の学習データカットオフ(2021-09)の内側にあり、27 例という規模も 655M パラメータのモデルに新しい情報を与えるには小さすぎるためである。",
+    "expected_conclusion": "本研究の主張は精度向上ではなく、分散実行の正当性の検証にある。確保されたノード数と実際に計算に参加したランクを区別して記録する仕組みを備えることで、「確保だけで動作していない」故障を検出可能にした。DockQ の測定結果は改善の有無に関わらずそのまま報告する。"
+  }
+}

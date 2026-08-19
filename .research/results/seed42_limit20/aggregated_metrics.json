@@ -1,0 +1,88 @@
+{
+  "primary_metric": "dockq_success_rate",
+  "supporting_metrics": [
+    "dockq_mean",
+    "dockq_medium_rate",
+    "dockq_high_rate",
+    "lddt_mean"
+  ],
+  "metrics_by_run_id": {
+    "baseline-pretrained": {
+      "dockq_success_rate": 0.0833,
+      "dockq_medium_rate": 0.0,
+      "dockq_high_rate": 0.0,
+      "dockq_mean": 0.0665,
+      "dockq_median": 0.0275,
+      "lddt_mean": 0.6833,
+      "n_scored": 24,
+      "n_attempted": 26,
+      "primary_metric": "dockq_success_rate",
+      "supporting_metrics": [
+        "dockq_mean",
+        "dockq_medium_rate",
+        "dockq_high_rate",
+        "lddt_mean"
+      ]
+    },
+    "proposed-seed42-r1": {
+      "dockq_success_rate": 0.0417,
+      "dockq_medium_rate": 0.0,
+      "dockq_high_rate": 0.0,
+      "dockq_mean": 0.0639,
+      "dockq_median": 0.035,
+      "lddt_mean": 0.625,
+      "n_scored": 24,
+      "n_attempted": 26,
+      "primary_metric": "dockq_success_rate",
+      "supporting_metrics": [
+        "dockq_mean",
+        "dockq_medium_rate",
+        "dockq_high_rate",
+        "lddt_mean"
+      ]
+    },
+    "proposed-seed42-r2": {
+      "dockq_success_rate": 0.0833,
+      "dockq_medium_rate": 0.0,
+      "dockq_high_rate": 0.0,
+      "dockq_mean": 0.07,
+      "dockq_median": 0.0435,
+      "lddt_mean": 0.6265,
+      "n_scored": 24,
+      "n_attempted": 26,
+      "primary_metric": "dockq_success_rate",
+      "supporting_metrics": [
+        "dockq_mean",
+        "dockq_medium_rate",
+        "dockq_high_rate",
+        "lddt_mean"
+      ]
+    },
+    "proposed-seed42-r3": {
+      "dockq_success_rate": 0.0417,
+      "dockq_medium_rate": 0.0,
+      "dockq_high_rate": 0.0,
+      "dockq_mean": 0.0586,
+      "dockq_median": 0.0295,
+      "lddt_mean": 0.636,
+      "n_scored": 24,
+      "n_attempted": 26,
+      "primary_metric": "dockq_success_rate",
+      "supporting_metrics": [
+        "dockq_mean",
+        "dockq_medium_rate",
+        "dockq_high_rate",
+        "lddt_mean"
+      ]
+    }
+  },
+  "best_proposed": [
+    "proposed-seed42-r2",
+    0.0833
+  ],
+  "best_baseline": [
+    "baseline-pretrained",
+    0.0833
+  ],
+  "gap": 0.0
+}

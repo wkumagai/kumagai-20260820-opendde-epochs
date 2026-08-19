@@ -1,0 +1,16 @@
+# The OpenDDE runtime (torch, the 655M model, its CCD dictionary and
+# checkpoint) is not installed here: it lives in a prebuilt environment on the
+# cluster filesystem that the job bind-mounts, and src/main.py execs into it.
+# These are only what the orchestrator itself imports.
+
+[project]
+name = "experiment"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "hydra-core",
+    "omegaconf",
+]
+
+[tool.uv]
+package = false

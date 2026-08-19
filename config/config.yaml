@@ -1,0 +1,22 @@
+defaults:
+  - _self_
+  - run: proposed-opendde-openfold3
+
+# Execution mode: sanity, pilot, or full
+mode: full
+
+# Results output directory
+results_dir: .research/results
+
+wandb:
+  entity: wkumagai
+  project: opendde-multinode-foldbench
+  mode: online
+
+# Raise the epoch count without redefining what `mode: full` means. null keeps
+# the mode's own value (full = 30).
+epochs: null
+
+# Epochs at which to write an intermediate checkpoint, so a long run can be
+# scored while it is still running. Empty keeps only the final one.
+checkpoint_at: "1,2,4,8,16,32"
